@@ -1,0 +1,10 @@
+{
+  "description": "Efficiently manage college inventory with a user-friendly web application that supports multiple roles, real-time tracking, and comprehensive reporting.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
