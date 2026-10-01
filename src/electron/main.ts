@@ -7,13 +7,14 @@ const __dirname = path.dirname(__filename)
 
 function createWindow() {
   const win = new BrowserWindow({
+    title: 'Stock Pilot',
     width: 1400,
     height: 900,
     minWidth: 1000,
     minHeight: 700,
 
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },

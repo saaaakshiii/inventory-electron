@@ -19,3 +19,8 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+node_modules/
+dist/
+dist-electron/
+release/
+.env
