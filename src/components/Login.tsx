@@ -11,8 +11,13 @@ import {
 import type { User, UserRole } from "../types";
 import { login } from "../services/auth";
 
+// interface LoginProps {
+//   onLogin: (user: User) => void;
+// }
+
 interface LoginProps {
   onLogin: (user: User) => void;
+  onShowSignup: () => void;
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -21,7 +26,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   viewer: "Viewer",
 };
 
-export default function Login({ onLogin }: LoginProps) {
+export default function Login({ onLogin, onShowSignup }: LoginProps) {
   const [role, setRole] = useState<UserRole>("admin");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -45,12 +50,7 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
 
     try {
-      console.log("LOGIN START", role, identifier);
-
       const result = await login(role, identifier.trim(), password);
-
-      console.log("LOGIN RESPONSE", result);
-
       const user: User = {
         id: result.subject,
         name: result.role === "viewer" ? "Viewer" : identifier.trim(),
@@ -67,6 +67,8 @@ export default function Login({ onLogin }: LoginProps) {
       storage.setItem("refresh_token", result.refresh_token);
       storage.setItem("user_role", result.role);
       storage.setItem("user_subject", result.subject);
+      storage.setItem("user_name", user.name);
+      storage.setItem("user_email", user.email);
 
       onLogin(user);
     } catch (err) {
@@ -235,6 +237,19 @@ export default function Login({ onLogin }: LoginProps) {
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
+
+            {isOperator && (
+              <p className="text-center text-sm text-slate-600 mt-6">
+                New operator?{" "}
+                <button
+                  type="button"
+                  onClick={onShowSignup}
+                  className="text-blue-700 hover:text-blue-800 font-medium"
+                >
+                  Sign Up
+                </button>
+              </p>
+            )}
           </div>
         </div>
 

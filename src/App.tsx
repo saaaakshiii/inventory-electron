@@ -11,6 +11,8 @@ import UserManagement from "./components/UserManagement";
 import AuditLogs from "./components/AuditLogs";
 import Settings from "./components/Settings";
 import Profile from "./components/Profile";
+import Signup from "./components/Signup";
+import { glob } from "fs";
 
 // Permission guard map
 const PAGE_PERMISSIONS: Record<Page, ("admin" | "operator" | "viewer")[]> = {
@@ -56,11 +58,13 @@ export default function App() {
   });
   const [page, setPage] = useState<Page>("dashboard");
   const [selectedStockId, setSelectedStockId] = useState<string | undefined>();
+  const [authView, setAuthView] = useState<"login" | "signup">("login");
 
   function handleLogin(u: User) {
     setUser(u);
     setPage("dashboard");
   }
+
 
   function handleLogout() {
     sessionStorage.removeItem("access_token");
@@ -69,8 +73,10 @@ export default function App() {
     sessionStorage.removeItem("user_subject");
     sessionStorage.removeItem("user_name");
     sessionStorage.removeItem("user_email");
+
     setUser(null);
     setPage("dashboard");
+    setAuthView("login");
   }
 
   function handleGlobalSearch(query: string) {
@@ -89,9 +95,24 @@ export default function App() {
     if (id) setSelectedStockId(id);
   }
 
+  // if (!user) {
+  //   return <Login onLogin={handleLogin} />;
+  // }
+
+
   if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  return authView === "signup" ? (
+    <Signup
+      onSignup={handleLogin}               // reuses handleLogin -> sets user + page "dashboard"
+      onBackToLogin={() => setAuthView("login")}
+    />
+  ) : (
+    <Login
+      onLogin={handleLogin}
+      onShowSignup={() => setAuthView("signup")}
+    />
+  );
+}
 
   function renderPage() {
     if (!user) return null;
@@ -127,6 +148,7 @@ export default function App() {
         return (
           <StockRegister
             user={user}
+            searchQuery={globalSearch}
             onViewDetail={(id) => navigateTo("stock-detail", id)}
           />
         );
@@ -168,3 +190,4 @@ export default function App() {
     </Layout>
   );
 }
+
