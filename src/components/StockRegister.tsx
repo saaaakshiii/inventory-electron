@@ -31,6 +31,7 @@ function fmt(n: number) {
 
 interface StockRegisterProps {
   user: User;
+  searchQuery?: string;
   onViewDetail: (id: string) => void;
 }
 
@@ -602,11 +603,18 @@ function StockStatusBadge({
 
 export default function StockRegister({
   user,
+  searchQuery,
   onViewDetail,
 }: StockRegisterProps) {
   const [records, setRecords] = useState<StockRegisterItem[]>([]);
 
   const [search, setSearch] = useState("");
+  useEffect(() => {
+  if (searchQuery !== undefined) {
+    setSearch(searchQuery);
+    setPage(1);
+  }
+}, [searchQuery]);
   const [itemTypeFilter, setItemTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 

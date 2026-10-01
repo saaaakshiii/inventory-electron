@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { User, Page } from "./types";
 import Login from "./components/Login";
 import Layout from "./components/Layout";
@@ -26,7 +26,34 @@ const PAGE_PERMISSIONS: Record<Page, ("admin" | "operator" | "viewer")[]> = {
 };
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [user, setUser] = useState<User | null>(() => {
+    const storage = sessionStorage;
+
+    const accessToken = storage.getItem("access_token");
+    const role = storage.getItem("user_role") as User["role"] | null;
+    const subject = storage.getItem("user_subject");
+
+    if (!accessToken || !role || !subject) {
+      return null;
+    }
+
+    return {
+      id: subject,
+      name:
+        storage.getItem("user_name") ||
+        (role === "viewer"
+          ? "Viewer"
+          : role === "admin"
+            ? "Administrator"
+            : "Data Operator"),
+      email: storage.getItem("user_email") || "",
+      role,
+      status: "active",
+      lastLogin: new Date().toLocaleDateString(),
+      createdDate: "",
+    };
+  });
   const [page, setPage] = useState<Page>("dashboard");
   const [selectedStockId, setSelectedStockId] = useState<string | undefined>();
 
@@ -36,8 +63,22 @@ export default function App() {
   }
 
   function handleLogout() {
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+    sessionStorage.removeItem("user_role");
+    sessionStorage.removeItem("user_subject");
+    sessionStorage.removeItem("user_name");
+    sessionStorage.removeItem("user_email");
     setUser(null);
     setPage("dashboard");
+  }
+
+  function handleGlobalSearch(query: string) {
+    setGlobalSearch(query);
+
+    if (query.trim()) {
+      setPage("stock-register");
+    }
   }
 
   function navigateTo(p: Page, id?: string) {
@@ -98,9 +139,9 @@ export default function App() {
           />
         );
       case "stock-movement":
-        return <StockMovement user={user}/>;
+        return <StockMovement user={user} />;
       case "reports":
-        return <Reports user={user}/>;
+        return <Reports user={user} />;
       case "user-management":
         return <UserManagement />;
       case "audit-logs":
@@ -120,7 +161,8 @@ export default function App() {
       currentPage={page}
       onNavigate={(p) => navigateTo(p)}
       onLogout={handleLogout}
-      notifications={3}
+      onSearch={handleGlobalSearch}
+      notifications={0}
     >
       {renderPage()}
     </Layout>

@@ -1,70 +1,81 @@
-import { useState } from 'react';
-import { Eye, EyeOff, BookOpen, Lock, Mail, ShieldCheck, Phone } from 'lucide-react';
-import type { User, UserRole } from '../types';
-import {login} from '../services/auth';
+import { useState } from "react";
+import {
+  Eye,
+  EyeOff,
+  BookOpen,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Phone,
+} from "lucide-react";
+import type { User, UserRole } from "../types";
+import { login } from "../services/auth";
 
 interface LoginProps {
   onLogin: (user: User) => void;
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Admin',
-  operator: 'Operator',
-  viewer: 'Viewer',
+  admin: "Admin",
+  operator: "Operator",
+  viewer: "Viewer",
 };
 
 export default function Login({ onLogin }: LoginProps) {
-  const [role, setRole] = useState<UserRole>('admin');
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole>("admin");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isOperator = role === 'operator';
+  const isOperator = role === "operator";
 
-  function handleRoleChange(newRole : UserRole){
+  function handleRoleChange(newRole: UserRole) {
     setRole(newRole);
-    setIdentifier('');
-    setPassword('');
-    setError('');
+    setIdentifier("");
+    setPassword("");
+    setError("");
   }
-
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
-    
+
     try {
+      console.log("LOGIN START", role, identifier);
+
       const result = await login(role, identifier.trim(), password);
+
+      console.log("LOGIN RESPONSE", result);
 
       const user: User = {
         id: result.subject,
-        name: identifier.trim(),
-        email: isOperator ? '' : identifier.trim(),
+        name: result.role === "viewer" ? "Viewer" : identifier.trim(),
+        email: isOperator ? "" : identifier.trim(),
         role: result.role,
-        status: 'active',
+        status: "active",
         lastLogin: new Date().toLocaleDateString(),
-        createdDate: '',
+        createdDate: "",
       };
 
-      const storage = remember ? localStorage : sessionStorage;
+      const storage = sessionStorage;
 
-      storage.setItem('access_token', result.access_token);
-      storage.setItem('refresh_token', result.refresh_token);
-      storage.setItem('user_role', result.role);
-      storage.setItem('user_subject', result.subject);
+      storage.setItem("access_token", result.access_token);
+      storage.setItem("refresh_token", result.refresh_token);
+      storage.setItem("user_role", result.role);
+      storage.setItem("user_subject", result.subject);
 
       onLogin(user);
     } catch (err) {
-        setError(
-          err instanceof Error
+      setError(
+        err instanceof Error
           ? err.message
-          : 'Invalid credentials. Please try again.',
-        );
-    } finally{
+          : "Invalid credentials. Please try again.",
+      );
+    } finally {
       setLoading(false);
     }
   }
@@ -72,7 +83,6 @@ export default function Login({ onLogin }: LoginProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-xl mb-4">
@@ -97,7 +107,6 @@ export default function Login({ onLogin }: LoginProps) {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-
           <div className="bg-blue-700 px-6 py-3">
             <p className="text-blue-100 text-xs text-center font-medium tracking-wide uppercase">
               Authorised Personnel Only
@@ -110,7 +119,6 @@ export default function Login({ onLogin }: LoginProps) {
             </h2>
 
             <form onSubmit={handleLogin} className="space-y-5">
-
               {/* Role */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -119,9 +127,7 @@ export default function Login({ onLogin }: LoginProps) {
 
                 <select
                   value={role}
-                  onChange={(e) =>
-                    handleRoleChange(e.target.value as UserRole)
-                  }
+                  onChange={(e) => handleRoleChange(e.target.value as UserRole)}
                   className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {(Object.keys(ROLE_LABELS) as UserRole[]).map(
@@ -137,7 +143,7 @@ export default function Login({ onLogin }: LoginProps) {
               {/* Email / Phone */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  {isOperator ? 'Phone Number' : 'College Email'}
+                  {isOperator ? "Phone Number" : "College Email"}
                 </label>
 
                 <div className="relative">
@@ -148,13 +154,11 @@ export default function Login({ onLogin }: LoginProps) {
                   )}
 
                   <input
-                    type={isOperator ? 'tel' : 'email'}
+                    type={isOperator ? "tel" : "email"}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     placeholder={
-                      isOperator
-                        ? '+919876543210'
-                        : 'username@college.edu'
+                      isOperator ? "+919876543210" : "username@college.edu"
                     }
                     required
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -172,7 +176,7 @@ export default function Login({ onLogin }: LoginProps) {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
 
                   <input
-                    type={showPass ? 'text' : 'password'}
+                    type={showPass ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
@@ -204,9 +208,7 @@ export default function Login({ onLogin }: LoginProps) {
                     className="w-4 h-4 accent-blue-700 rounded"
                   />
 
-                  <span className="text-sm text-slate-600">
-                    Remember me
-                  </span>
+                  <span className="text-sm text-slate-600">Remember me</span>
                 </label>
 
                 <button
@@ -230,7 +232,7 @@ export default function Login({ onLogin }: LoginProps) {
                 disabled={loading}
                 className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition text-sm shadow-sm"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
           </div>
